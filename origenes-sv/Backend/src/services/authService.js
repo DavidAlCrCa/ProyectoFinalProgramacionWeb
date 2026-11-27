@@ -141,3 +141,4 @@ export async function changePassword(userId, { currentPassword, newPassword }) {
   }
   return updated.rows[0];
 }
+
