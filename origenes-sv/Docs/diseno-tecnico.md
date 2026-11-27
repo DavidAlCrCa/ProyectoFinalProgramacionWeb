@@ -10,7 +10,7 @@
 
 ## Organización del código
 
-El repositorio es un monorepo con dos paquetes (`Frontend/` y `Backend/`) y recursos compartidos en la raíz (`db/`, `docs/`, `docker-compose.yml`). El servidor sigue una estructura por capas: `routes` → `controllers` → `services`, con `schemas` (Zod) para validar la entrada, `middlewares` para autenticación, permisos, límites de intentos y manejo de errores, y `domain` para los cálculos puros que tienen pruebas unitarias. El cliente organiza cada pantalla en `Frontend/src/pages/<Pantalla>/`. Aunque el código está separado en dos paquetes, la aplicación se despliega como una unidad: en producción el servidor entrega el cliente compilado (`Frontend/dist/`). Consulta el README para el árbol completo.
+El repositorio es un monorepo con dos paquetes (`client/` y `server/`) y recursos compartidos en la raíz (`db/`, `docs/`, `docker-compose.yml`). El servidor sigue una estructura por capas: `routes` → `controllers` → `services`, con `schemas` (Zod) para validar la entrada, `middlewares` para autenticación, permisos, límites de intentos y manejo de errores, y `domain` para los cálculos puros que tienen pruebas unitarias. El cliente organiza cada pantalla en `client/src/pages/<Pantalla>/`. Aunque el código está separado en dos paquetes, la aplicación se despliega como una unidad: en producción el servidor entrega el cliente compilado (`client/dist/`). Consulta el README para el árbol completo.
 
 ## Módulos y datos
 
@@ -23,7 +23,7 @@ El repositorio es un monorepo con dos paquetes (`Frontend/` y `Backend/`) y recu
 - Los productos con receta descuentan cantidades acumuladas por insumo. Los productos de reventa descuentan existencias por unidad. No se permite inventario negativo.
 - El correlativo es independiente por sucursal, documento y año, con bloqueo atómico en PostgreSQL para evitar duplicados concurrentes.
 - La caja compara fondo de apertura más ventas en efectivo con el conteo; tarjeta, Bitcoin y Chivo Wallet se comparan por separado.
-- La planilla quincenal usa salario mensual dividido entre dos, ISSS al 3% (sobre un máximo de $500 por quincena), AFP al 7.25% e ISR según el tramo configurado en `Backend/src/domain/domain.js`.
+- La planilla quincenal usa salario mensual dividido entre dos, ISSS al 3%, AFP al 7.25% e ISR según el tramo configurado en `server/src/domain/domain.js`.
 
 ## API
 
@@ -35,21 +35,18 @@ Las rutas de negocio requieren `Authorization: Bearer <JWT>`.
 | POST | `/api/auth/login` | Iniciar sesión |
 | GET | `/api/branches` | Sucursales activas |
 | GET | `/api/dashboard?branchId=` | Indicadores de sucursal |
-| GET / POST | `/api/products` | Menú y creación de productos elaborados |
-| GET / PUT | `/api/products/:id/recipe` | Consultar y reemplazar receta |
-| POST / DELETE | `/api/inventory`, `/api/inventory/:type/:id` | Crear y desactivar artículos |
-| POST / DELETE | `/api/suppliers`, `/api/suppliers/:id` | Crear y desactivar proveedores |
-| DELETE | `/api/purchases/:id` | Eliminar una factura de compra |
-| GET | `/api/auth/me` | Usuario de la sesión |
-| POST | `/api/auth/password` | Cambiar contraseña |
+| GET | `/api/products` | Menú y recetas |
 | GET | `/api/inventory?branchId=` | Existencias y alertas |
 | GET / POST | `/api/purchases` | Listar y registrar compras |
 | GET | `/api/suppliers` | Proveedores activos |
 | GET | `/api/cash/status?branchId=` | Turno activo y totales |
 | POST | `/api/cash/open`, `/api/cash/close` | Apertura y cierre de turno |
-| POST | `/api/sales` | Registrar venta y comprobante interno |
-| GET / POST | `/api/employees` | Consultar y registrar empleados |
-| GET / POST | `/api/payroll` | Consultar y generar planillas |
+| POST | `/api/sales` | Registrar venta y comprobante interno (CCF exige `customer`: nombre, NIT, NRC) |
+| GET | `/api/invoices?branchId=&documentType=&from=&to=&search=` | Listar facturas emitidas con filtros |
+| GET | `/api/invoices/:id` | Detalle de una factura con sus líneas |
+| GET / POST | `/api/employees` | Consultar y registrar empleados (POST: ADMIN/MANAGER) |
+| PUT / DELETE | `/api/employees/:id` | Editar y desactivar empleado (ADMIN/MANAGER; borrado lógico) |
+| GET / POST | `/api/payroll` | Consultar y generar planillas (ADMIN/MANAGER) |
 
 ## Seguridad, configuración y operación
 
@@ -68,12 +65,4 @@ Las rutas de negocio requieren `Authorization: Bearer <JWT>`.
 
 ## Asistencia de IA
 
-Se utilizaron asistentes de IA para la implementación y la documentación inicial, y Claude (Anthropic) para reorganizar, revisar y corregir el código (entre otros: tabla de renta, tope del ISSS, fechas y permisos). El equipo verificó todo el código, validó los cálculos con fuentes oficiales, ejecutó las pruebas y declaró esta asistencia en la bibliografía IEEE requerida por el curso.
-
-## Referencias
-
-[1] Cátedra de Programación Web, "Desarrollo de aplicaciones web, para la resolución de problemas prácticos," enunciado del proyecto, ciclo 02, 2026.
-
-[2] Anthropic, "Claude," asistente de inteligencia artificial. [En línea]. Disponible: https://claude.ai. Accedido: 26 nov. 2026.
-
-[3] Órgano Ejecutivo de El Salvador, "Decreto Ejecutivo No. 10: Tablas de retención del impuesto sobre la renta," 2025. [En línea]. Disponible: https://www.jurisprudencia.gob.sv/DocumentosBoveda/D/2/2020-2029/2025/04/10A052.PDF. Accedido: 26 nov. 2026.
+Se utilizó un asistente de IA para apoyar la implementación y la documentación inicial. El equipo debe verificar todo el código, validar los cálculos con fuentes oficiales, ejecutar las pruebas y declarar esta asistencia en la bibliografía IEEE requerida por el curso. La defensa debe reflejar comprensión propia del sistema.

@@ -15,9 +15,16 @@ Antes de cobrar, entra a **Caja y turnos**, ingresa el fondo inicial y seleccion
 1. Abre **Punto de venta** y agrega los artículos.
 2. Revisa subtotal e IVA del 13%.
 3. Selecciona factura de consumidor final o CCF y el medio de pago.
-4. Selecciona **Cobrar y emitir factura**. Guarda el correlativo mostrado.
+4. Si eliges **CCF**, completa los datos del cliente: nombre o razón social, **NIT** (14 dígitos) y **NRC**. El botón de cobro se habilita cuando estén completos.
+5. Selecciona **Cobrar y emitir factura**. Guarda el correlativo mostrado.
 
 Una venta consume los ingredientes de la receta o una unidad de cada producto empacado, crea el registro de venta y reserva el correlativo en una sola transacción. Si el stock no alcanza, la venta se rechaza completa.
+
+## Consultar facturas emitidas
+
+1. Abre **Facturas emitidas** en el menú lateral.
+2. Filtra por texto (número, cliente, NIT o NRC), tipo de comprobante y rango de fechas, y selecciona **Filtrar**.
+3. Selecciona **Ver** para abrir el detalle con productos, IVA y datos del cliente (en CCF). Desde ahí puedes **Imprimir**.
 
 ## Revisar existencias
 
@@ -33,11 +40,19 @@ El panel de caja muestra ventas por forma de pago y efectivo esperado (fondo de 
 
 ## Administrar personal y planilla
 
-1. Registra cada empleado con puesto y salario mensual.
+1. Registra cada empleado con puesto y salario mensual. Con **Editar** cambias sus datos y con **Desactivar** deja de aparecer y de entrar en nuevas planillas (las planillas anteriores se conservan). Solo ADMIN y MANAGER pueden hacerlo.
 2. Selecciona el período quincenal y genera el cálculo.
 3. Revisa bruto, ISSS, AFP, ISR y neto antes de utilizar los resultados.
 
 La planilla es una herramienta académica de cálculo, no una liquidación certificada. Verifica los límites y tablas legales del período antes de efectuar pagos.
+
+## Cambiar contraseña
+
+1. En la navegación lateral, abre **Seguridad**.
+2. Ingresa tu contraseña actual y la nueva contraseña dos veces.
+3. La nueva contraseña debe tener al menos 12 caracteres. Selecciona **Actualizar contraseña**.
+
+Al completar el cambio, tu sesión actual continúa activa y las demás sesiones se invalidan.
 
 ## Cerrar sesión
 

@@ -60,7 +60,7 @@ async function consumeResaleProducts(client, branchId, resaleLines) {
 }
 
 // Genera el correlativo por sucursal, tipo de documento y año, y crea el comprobante interno.
-async function issueInvoice(client, { saleId, branchId, documentType, totals }) {
+async function issueInvoice(client, { saleId, branchId, documentType, totals, customer }) {
   const fiscalYear = new Date().getFullYear();
   const sequence = await client.query(
     `INSERT INTO invoice_counters (branch_id, document_type, fiscal_year, next_number)
@@ -76,11 +76,13 @@ async function issueInvoice(client, { saleId, branchId, documentType, totals }) 
   const invoiceNumber = `${prefix}-${branch.rows[0].code}-${fiscalYear}-${String(invoiceSequence).padStart(6, "0")}`;
   const invoice = await client.query(
     `INSERT INTO invoices
-       (sale_id, branch_id, document_type, fiscal_year, sequence_number, invoice_number, subtotal, tax, total)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       (sale_id, branch_id, document_type, fiscal_year, sequence_number, invoice_number,
+        subtotal, tax, total, customer_name, customer_nit, customer_nrc)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      RETURNING invoice_number AS "invoiceNumber"`,
     [saleId, branchId, documentType, fiscalYear, invoiceSequence,
-      invoiceNumber, totals.subtotal, totals.tax, totals.total]
+      invoiceNumber, totals.subtotal, totals.tax, totals.total,
+      customer?.name ?? null, customer?.nit ?? null, customer?.nrc ?? null]
   );
   return invoice.rows[0].invoiceNumber;
 }
@@ -140,7 +142,9 @@ export function createSale(data, userId) {
       saleId,
       branchId: data.branchId,
       documentType: data.documentType,
-      totals
+      totals,
+      // Solo el CCF guarda datos del cliente; en consumidor final se ignoran.
+      customer: data.documentType === "CCF" ? data.customer : null
     });
     return { id: saleId, invoice, ...totals };
   });

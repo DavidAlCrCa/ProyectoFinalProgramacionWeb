@@ -9,6 +9,7 @@ import cashRoutes from "./cash.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import employeeRoutes from "./employee.routes.js";
 import inventoryRoutes from "./inventory.routes.js";
+import invoiceRoutes from "./invoice.routes.js";
 import payrollRoutes from "./payroll.routes.js";
 import productRoutes from "./product.routes.js";
 import purchaseRoutes from "./purchase.routes.js";
@@ -35,6 +36,7 @@ export function createApiRouter({ jwtSecret }) {
   api.use("/purchases", purchaseRoutes);
   api.use("/cash", cashRoutes);
   api.use("/sales", saleRoutes);
+  api.use("/invoices", invoiceRoutes);
   api.use("/employees", employeeRoutes);
   api.use("/payroll", payrollRoutes);
 
