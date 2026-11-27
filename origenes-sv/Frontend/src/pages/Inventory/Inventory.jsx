@@ -1,378 +1,303 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Input, Spinner, Table } from "reactstrap";
-import { api } from "../../api/api.js";
-import { useWorkspace } from "../../context/WorkspaceContext.js";
-import "./Inventory.css";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useInventory } from '../../hooks/useInventory.js';
+import './Inventory.css';
  
-// Imágenes de Figma: carpeta public/img/ (se sirven desde la ruta /img/)
-const IMG = "/img";
+const ESTADOS = {
+  disponible: { etiqueta: 'Disponible', clase: 'ok' },
+  bajo: { etiqueta: 'Stock bajo', clase: 'bajo' },
+  agotado: { etiqueta: 'Sin stock', clase: 'agotado' },
+};
  
-const STATUS_LABEL = { ok: "Disponible", low: "Stock bajo", out: "Sin stock" };
-const STATUS_ORDER = { out: 0, low: 1, ok: 2 };
-const SORT_OPTIONS = [
-  { value: "default", label: "Más urgentes primero" },
-  { value: "name", label: "Nombre" },
-  { value: "quantity", label: "Existencia" },
-  { value: "minimumStock", label: "Mínimo" },
-  { value: "status", label: "Estado" }
-];
-const UNITS = ["g", "kg", "ml", "l", "unidad"];
-// El backend fija el mínimo de los productos empacados (RESALE) en 5.
-const RESALE_MIN_STOCK = 5;
+const ORDENES = {
+  nombre: (a, b) => a.nombre.localeCompare(b.nombre, 'es'),
+  existenciaAsc: (a, b) => a.existencia - b.existencia,
+  existenciaDesc: (a, b) => b.existencia - a.existencia,
+};
  
-// Convierte un registro del backend en uno de los 3 estados del diseño.
-function getStatus(item) {
-  if (Number(item.quantity) <= 0) return "out";
-  if (item.lowStock) return "low";
-  return "ok";
+const formatoNumero = new Intl.NumberFormat('es-SV', { maximumFractionDigits: 2 });
+ 
+function calcularEstado({ existencia, minimo }) {
+  if (existencia <= 0) return 'agotado';
+  if (existencia <= minimo) return 'bajo';
+  return 'disponible';
 }
  
-// Borrador de la fila "nuevo artículo". type: INGREDIENT (insumo) | RESALE (empacado)
-function newDraft(type) {
-  return {
-    type,
-    name: "",
-    unit: type === "RESALE" ? "unidad" : "g",
-    quantity: "",
-    minimumStock: type === "RESALE" ? String(RESALE_MIN_STOCK) : "",
-    price: ""
-  };
-}
+const normalizarTexto = (texto) =>
+  texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
  
 export default function Inventory() {
-  const { branchId, user } = useWorkspace();
-  // Solo administradores y gerentes pueden crear o eliminar (el backend también lo valida).
-  const canEdit = ["ADMIN", "MANAGER"].includes(user?.role);
+  const { items, cargando, error, recargar, eliminar } = useInventory();
  
-  const [rows, setRows] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todos');
+  const [orden, setOrden] = useState('nombre');
+  const [panelAbierto, setPanelAbierto] = useState(false);
+  const [avisoEliminar, setAvisoEliminar] = useState('');
  
-  // Búsqueda, filtros y orden
-  const [search, setSearch] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [sortKey, setSortKey] = useState("default");
-  const [sortDir, setSortDir] = useState("asc");
+  const buscadorRef = useRef(null);
+  const filtroRef = useRef(null);
  
-  // Fila verde de "nuevo artículo"
-  const [draft, setDraft] = useState(null);
-  const [formError, setFormError] = useState("");
-  const [saving, setSaving] = useState(false);
- 
-  const loadInventory = useCallback(async (showSpinner = true) => {
-    if (showSpinner) setLoading(true);
-    setError("");
-    try {
-      const data = await api(`/inventory?branchId=${branchId}`);
-      setRows(data);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [branchId]);
- 
-  // Recarga cuando cambia la sucursal
+  // Cierra el panel de filtros con Escape o al hacer clic fuera de el.
   useEffect(() => {
-    loadInventory();
-  }, [loadInventory]);
- 
-  // Contadores de las tres tarjetas superiores
-  const counters = useMemo(() => {
-    const statuses = rows.map(getStatus);
-    return {
-      total: rows.length,
-      low: statuses.filter((status) => status === "low").length,
-      out: statuses.filter((status) => status === "out").length
+    if (!panelAbierto) return undefined;
+    const alPresionar = (evento) => {
+      if (evento.key === 'Escape') setPanelAbierto(false);
     };
-  }, [rows]);
+    const alHacerClic = (evento) => {
+      if (filtroRef.current && !filtroRef.current.contains(evento.target)) {
+        setPanelAbierto(false);
+      }
+    };
+    document.addEventListener('keydown', alPresionar);
+    document.addEventListener('mousedown', alHacerClic);
+    return () => {
+      document.removeEventListener('keydown', alPresionar);
+      document.removeEventListener('mousedown', alHacerClic);
+    };
+  }, [panelAbierto]);
  
-  // 1) filtra (buscador + estado + tipo)  2) ordena
-  const visibleRows = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    const filtered = rows.filter((item) => {
-      const matchesSearch = !term || item.name.toLowerCase().includes(term);
-      const matchesStatus = statusFilter === "all" || getStatus(item) === statusFilter;
-      const matchesType = typeFilter === "all" || item.type === typeFilter;
-      return matchesSearch && matchesStatus && matchesType;
-    });
-    if (sortKey === "default") return filtered; // orden que envía el backend
-    const factor = sortDir === "asc" ? 1 : -1;
-    return [...filtered].sort((a, b) => {
-      if (sortKey === "name") return a.name.localeCompare(b.name, "es") * factor;
-      if (sortKey === "status") return (STATUS_ORDER[getStatus(a)] - STATUS_ORDER[getStatus(b)]) * factor;
-      return (Number(a[sortKey]) - Number(b[sortKey])) * factor;
-    });
-  }, [rows, search, statusFilter, typeFilter, sortKey, sortDir]);
+  const conEstado = useMemo(
+    () => items.map((item) => ({ ...item, estado: calcularEstado(item) })),
+    [items]
+  );
  
-  const updateDraft = (field) => (event) =>
-    setDraft((current) => ({ ...current, [field]: event.target.value }));
+  const resumen = useMemo(
+    () => ({
+      total: conEstado.length,
+      bajo: conEstado.filter((item) => item.estado === 'bajo').length,
+      agotado: conEstado.filter((item) => item.estado === 'agotado').length,
+    }),
+    [conEstado]
+  );
  
-  // Abre la fila de captura. Por defecto empieza como insumo; el tipo se cambia dentro del formulario.
-  function startDraft(type = "INGREDIENT") {
-    setFormError("");
-    setDraft(newDraft(type));
-  }
+  const visibles = useMemo(() => {
+    const texto = normalizarTexto(busqueda.trim());
+    return conEstado
+      .filter(
+        (item) =>
+          (filtroEstado === 'todos' || item.estado === filtroEstado) &&
+          normalizarTexto(item.nombre).includes(texto)
+      )
+      .sort(ORDENES[orden]);
+  }, [conEstado, busqueda, filtroEstado, orden]);
  
-  // Cambia entre insumo y producto empacado conservando lo que ya se escribió
-  function changeDraftType(event) {
-    const type = event.target.value;
-    setDraft((current) => ({ ...newDraft(type), name: current.name, quantity: current.quantity }));
-  }
+  const hayFiltros = busqueda.trim() !== '' || filtroEstado !== 'todos';
  
-  // Valida en el cliente y envía POST /inventory
-  async function saveDraft() {
-    const name = draft.name.trim();
-    const quantity = Number(draft.quantity);
-    const minimumStock = Number(draft.minimumStock);
-    const price = Number(draft.price);
-    const isResale = draft.type === "RESALE";
+  const limpiarFiltros = () => {
+    setBusqueda('');
+    setFiltroEstado('todos');
+    setOrden('nombre');
+  };
  
-    if (name.length < 2) return setFormError("Escribe el nombre del artículo (mínimo 2 letras).");
-    if (draft.quantity === "" || !Number.isFinite(quantity) || quantity < 0) {
-      return setFormError("La existencia debe ser un número igual o mayor que 0.");
-    }
-    if (!isResale && (draft.minimumStock === "" || !Number.isFinite(minimumStock) || minimumStock < 0)) {
-      return setFormError("El mínimo debe ser un número igual o mayor que 0.");
-    }
-    if (isResale && !(price > 0)) return setFormError("Indica el precio de venta del producto empacado.");
- 
-    setSaving(true);
-    setFormError("");
+  const manejarEliminar = async (item) => {
+    if (!window.confirm(`¿Eliminar "${item.nombre}" del inventario?`)) return;
+    setAvisoEliminar('');
     try {
-      await api("/inventory", {
-        method: "POST",
-        body: {
-          branchId,
-          type: draft.type,
-          name,
-          unit: draft.unit,
-          quantity,
-          minimumStock: isResale ? RESALE_MIN_STOCK : minimumStock,
-          ...(isResale ? { price } : {})
-        }
-      });
-      setDraft(null);
-      await loadInventory(false);
-    } catch (requestError) {
-      setFormError(requestError.message);
-    } finally {
-      setSaving(false);
+      await eliminar(item.id);
+    } catch (e) {
+      setAvisoEliminar(
+        e?.response?.data?.message ?? `No se pudo eliminar "${item.nombre}". Inténtalo de nuevo.`
+      );
     }
-  }
- 
-  // Botón X: elimina (desactiva) el artículo
-  async function removeItem(item) {
-    const confirmed = window.confirm(
-      `¿Eliminar "${item.name}"? Dejará de aparecer en el inventario de todas las sucursales.`
-    );
-    if (!confirmed) return;
-    setError("");
-    try {
-      await api(`/inventory/${item.type}/${item.id}`, { method: "DELETE" });
-      setRows((current) => current.filter((row) => !(row.id === item.id && row.type === item.type)));
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  }
- 
-  const summary = [
-    { key: "total", label: "Total de productos", value: counters.total, img: "TotalProducto.png" },
-    { key: "low", label: "Stock bajo", value: counters.low, img: "StockBajo.png" },
-    { key: "out", label: "Sin stock", value: counters.out, img: "SinStock.png" }
-  ];
-  const columnCount = canEdit ? 6 : 5;
+  };
  
   return (
-    <div className="inv-page">
-      <h1 className="inv-title">Inventario</h1>
+    <section className="inv">
+      <header className="inv__encabezado">
+        <h1 className="inv__titulo">Inventario</h1>
+      </header>
  
-      {/* Buscador + botón de filtros */}
-      <div className="inv-toolbar">
-        <div className="inv-search">
-          <img src={`${IMG}/BotonBuscador.png`} alt="" className="inv-search-icon" />
-          <Input
-            aria-label="Buscar artículo"
-            placeholder="Buscar artículo"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
+      <div className="inv__barra">
         <button
           type="button"
-          className="inv-filter-btn"
-          aria-expanded={showFilters}
-          aria-label="Mostrar filtros"
-          onClick={() => setShowFilters((open) => !open)}
+          className="inv__boton-imagen"
+          aria-label="Buscar artículo"
+          onClick={() => buscadorRef.current?.focus()}
         >
-          <img src={`${IMG}/Filtro.png`} alt="" />
+          <img className="inv__icono-buscar" src="/img/BotonBuscador.png" alt="" />
         </button>
+ 
+        <input
+          ref={buscadorRef}
+          className="inv__buscador"
+          type="search"
+          placeholder="Buscar artículo"
+          aria-label="Buscar artículo"
+          value={busqueda}
+          onChange={(evento) => setBusqueda(evento.target.value)}
+        />
+ 
+        <div className="inv__filtro" ref={filtroRef}>
+          <button
+            type="button"
+            className="inv__boton-imagen"
+            aria-label="Filtrar y ordenar"
+            aria-expanded={panelAbierto}
+            aria-controls="inv-panel-filtros"
+            onClick={() => setPanelAbierto((abierto) => !abierto)}
+          >
+            <img className="inv__icono-filtro" src="/img/Filtro.png" alt="" />
+          </button>
+ 
+          {panelAbierto && (
+            <div className="inv__panel" id="inv-panel-filtros">
+              <fieldset className="inv__grupo">
+                <legend>Estado</legend>
+                {[
+                  ['todos', 'Todos'],
+                  ['disponible', ESTADOS.disponible.etiqueta],
+                  ['bajo', ESTADOS.bajo.etiqueta],
+                  ['agotado', ESTADOS.agotado.etiqueta],
+                ].map(([valor, etiqueta]) => (
+                  <label key={valor} className="inv__opcion">
+                    <input
+                      type="radio"
+                      name="inv-estado"
+                      value={valor}
+                      checked={filtroEstado === valor}
+                      onChange={() => setFiltroEstado(valor)}
+                    />
+                    {etiqueta}
+                  </label>
+                ))}
+              </fieldset>
+ 
+              <label className="inv__grupo inv__grupo--orden">
+                <span>Ordenar por</span>
+                <select value={orden} onChange={(evento) => setOrden(evento.target.value)}>
+                  <option value="nombre">Nombre (A–Z)</option>
+                  <option value="existenciaAsc">Existencia: de menor a mayor</option>
+                  <option value="existenciaDesc">Existencia: de mayor a menor</option>
+                </select>
+              </label>
+ 
+              <button type="button" className="inv__limpiar" onClick={limpiarFiltros}>
+                Quitar filtros
+              </button>
+            </div>
+          )}
+        </div>
       </div>
  
-      {showFilters && (
-        <div className="inv-filters">
-          <label>
-            Estado
-            <Input type="select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-              <option value="all">Todos</option>
-              <option value="ok">Disponible</option>
-              <option value="low">Stock bajo</option>
-              <option value="out">Sin stock</option>
-            </Input>
-          </label>
-          <label>
-            Tipo
-            <Input type="select" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}>
-              <option value="all">Todos</option>
-              <option value="INGREDIENT">Insumo / receta</option>
-              <option value="RESALE">Producto empacado</option>
-            </Input>
-          </label>
-          <label>
-            Ordenar por
-            <Input type="select" value={sortKey} onChange={(event) => setSortKey(event.target.value)}>
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </Input>
-          </label>
-          <label>
-            Orden
-            <Input type="select" value={sortDir} disabled={sortKey === "default"}
-              onChange={(event) => setSortDir(event.target.value)}>
-              <option value="asc">Ascendente</option>
-              <option value="desc">Descendente</option>
-            </Input>
-          </label>
-        </div>
+      <ul className="inv__resumen">
+        <li className="inv__dato">
+          <img src="/img/TotalProducto.png" alt="" />
+          <span>
+            Total de productos: <strong>{resumen.total}</strong>
+          </span>
+        </li>
+        <li className="inv__dato">
+          <img src="/img/StockBajo.png" alt="" />
+          <span>
+            Stock bajo: <strong>{resumen.bajo}</strong>
+          </span>
+        </li>
+        <li className="inv__dato">
+          <img src="/img/SinStock.png" alt="" />
+          <span>
+            Sin stock: <strong>{resumen.agotado}</strong>
+          </span>
+        </li>
+      </ul>
+ 
+      {avisoEliminar && (
+        <p className="inv__aviso" role="alert">
+          {avisoEliminar}
+        </p>
       )}
  
-      {/* Tarjetas resumen */}
-      <div className="inv-summary">
-        {summary.map((card) => (
-          <div className="inv-stat" key={card.key}>
-            <img src={`${IMG}/${card.img}`} alt="" />
-            <span>{card.label}: <strong>{card.value}</strong></span>
-          </div>
-        ))}
-      </div>
+      <div className="inv__contenedor-tabla">
+        <table className="inv__tabla">
+          <colgroup>
+            <col style={{ width: '34%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '17%' }} />
+            <col style={{ width: '17%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '4%' }} />
+          </colgroup>
  
-      {error && <Alert color="danger">{error}</Alert>}
-      {formError && <Alert color="warning">{formError}</Alert>}
+          <thead>
+            <tr>
+              <th scope="col">Artículo</th>
+              <th scope="col">Unidad</th>
+              <th scope="col">Existencia</th>
+              <th scope="col">Mínimo</th>
+              <th scope="col">Estado</th>
+              <th scope="col" className="inv__accion">
+                <span className="inv__solo-lector">Eliminar</span>
+              </th>
+            </tr>
+          </thead>
  
-      {loading ? (
-        <Spinner color="success" />
-      ) : (
-        <div className="table-responsive">
-          <Table className="inv-table align-middle">
-            <thead>
+          <tbody>
+            {cargando && (
               <tr>
-                <th>Artículo</th>
-                <th>Unidad</th>
-                <th>Existencia</th>
-                <th>Mínimo</th>
-                <th>Estado</th>
-                {canEdit && <th className="inv-action" aria-label="Acciones" />}
+                <td colSpan={6} className="inv__mensaje" role="status">
+                  Cargando inventario…
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {visibleRows.map((item) => {
-                const status = getStatus(item);
+            )}
+ 
+            {!cargando && error && (
+              <tr>
+                <td colSpan={6} className="inv__mensaje" role="alert">
+                  <span>{error}</span>
+                  <button type="button" className="inv__reintentar" onClick={recargar}>
+                    Reintentar
+                  </button>
+                </td>
+              </tr>
+            )}
+ 
+            {!cargando && !error && visibles.length === 0 && (
+              <tr>
+                <td colSpan={6} className="inv__mensaje">
+                  {hayFiltros
+                    ? 'Ningún artículo coincide con la búsqueda o los filtros.'
+                    : 'Todavía no hay artículos en el inventario.'}
+                </td>
+              </tr>
+            )}
+ 
+            {!cargando &&
+              !error &&
+              visibles.map((item) => {
+                const estado = ESTADOS[item.estado];
                 return (
-                  <tr key={`${item.type}-${item.id}`} className={`inv-row inv-row-${status}`}>
-                    <td className="inv-name">{item.name}</td>
-                    <td>{item.unit}</td>
-                    <td>{Number(item.quantity).toLocaleString("es-SV")}</td>
-                    <td>{Number(item.minimumStock).toLocaleString("es-SV")}</td>
-                    <td><span className={`inv-badge inv-badge-${status}`}>{STATUS_LABEL[status]}</span></td>
-                    {canEdit && (
-                      <td className="inv-action">
-                        <button type="button" className="inv-delete" aria-label={`Eliminar ${item.name}`}
-                          onClick={() => removeItem(item)}>
-                          <img src={`${IMG}/EliminarReceta.png`} alt="" />
-                        </button>
-                      </td>
-                    )}
+                  <tr key={item.id}>
+                    <td className="inv__celda inv__celda--nombre" title={item.nombre}>
+                      {item.nombre}
+                    </td>
+                    <td className="inv__celda">{item.unidad}</td>
+                    <td className="inv__celda inv__celda--numero">
+                      {formatoNumero.format(item.existencia)}
+                    </td>
+                    <td className="inv__celda inv__celda--numero">
+                      {formatoNumero.format(item.minimo)}
+                    </td>
+                    <td className="inv__celda">
+                      <span className={`inv__estado inv__estado--${estado.clase}`}>
+                        {estado.etiqueta}
+                      </span>
+                    </td>
+                    <td className="inv__accion">
+                      <button
+                        type="button"
+                        className="inv__boton-imagen inv__eliminar"
+                        aria-label={`Eliminar ${item.nombre}`}
+                        onClick={() => manejarEliminar(item)}
+                      >
+                        <img src="/img/EliminarProducto.png" alt="" />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
- 
-              {!visibleRows.length && (
-                <tr className="inv-empty">
-                  <td colSpan={columnCount}>
-                    {rows.length ? "Ningún artículo coincide con la búsqueda o los filtros." : "Sin existencias registradas."}
-                  </td>
-                </tr>
-              )}
- 
-              {/* Fila verde: crear un artículo nuevo */}
-              {canEdit && !draft && (
-                <tr className="inv-add-trigger-row">
-                  <td colSpan={5}>
-                    {/* Toda la fila verde es un botón: reacciona al hover y al clic */}
-                    <button
-                      type="button"
-                      className="inv-add-trigger"
-                      aria-label="Añadir artículo nuevo"
-                      onClick={() => startDraft()}
-                    />
-                  </td>
-                  <td className="inv-action" />
-                </tr>
-              )}
- 
-              {canEdit && draft && (
-                <tr className="inv-add-row inv-add-form">
-                  <td>
-                    <Input aria-label="Tipo de artículo" type="select" value={draft.type} onChange={changeDraftType}>
-                      <option value="INGREDIENT">Insumo / ingrediente</option>
-                      <option value="RESALE">Producto empacado</option>
-                    </Input>
-                    <Input aria-label="Nombre" maxLength={140} value={draft.name} onChange={updateDraft("name")}
-                      placeholder={draft.type === "RESALE" ? "Nombre del producto empacado" : "Nombre del ingrediente"} />
-                    {draft.type === "RESALE" && (
-                      <Input aria-label="Precio de venta" type="number" min="0.01" step="0.01"
-                        placeholder="Precio de venta (USD)" value={draft.price} onChange={updateDraft("price")} />
-                    )}
-                  </td>
-                  <td>
-                    {draft.type === "RESALE" ? "unidad" : (
-                      <Input aria-label="Unidad" type="select" value={draft.unit} onChange={updateDraft("unit")}>
-                        {UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
-                      </Input>
-                    )}
-                  </td>
-                  <td>
-                    <Input aria-label="Existencia inicial" type="number" min="0" step="any" placeholder="0"
-                      value={draft.quantity} onChange={updateDraft("quantity")} />
-                  </td>
-                  <td>
-                    {draft.type === "RESALE" ? RESALE_MIN_STOCK : (
-                      <Input aria-label="Mínimo" type="number" min="0" step="any" placeholder="0"
-                        value={draft.minimumStock} onChange={updateDraft("minimumStock")} />
-                    )}
-                  </td>
-                  <td>
-                    <div className="inv-form-actions">
-                      <button type="button" className="inv-save" disabled={saving} onClick={saveDraft}>
-                        {saving ? "Guardando…" : "Guardar"}
-                      </button>
-                      <button type="button" className="inv-cancel" disabled={saving}
-                        onClick={() => { setDraft(null); setFormError(""); }}>
-                        Cancelar
-                      </button>
-                    </div>
-                  </td>
-                  <td className="inv-action" />
-                </tr>
-              )}
-            </tbody>
-          </Table>
-        </div>
-      )}
-    </div>
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
  
