@@ -24,34 +24,6 @@ export async function createAdminUser() {
   );
 }
 
-// Crear usuario gerente inicial
-export async function createManagerUser() {
-  const email = process.env.MANAGER_EMAIL;
-  const password = process.env.MANAGER_PASSWORD;
-
-  if (!email || !password) return;
-
-  if (password.length < 12) {
-    throw new Error(
-      "MANAGER_PASSWORD debe tener al menos 12 caracteres."
-    );
-  }
-
-  const existing = await pool.query(
-    "SELECT id FROM users WHERE email = $1",
-    [email]
-  );
-
-  if (existing.rowCount > 0) return;
-
-  const hash = await bcrypt.hash(password, 12);
-
-  await pool.query(
-    "INSERT INTO users (email, password_hash, full_name, role) VALUES ($1, $2, $3, 'MANAGER')",
-    [email, hash, "Gerente Orígenes"]
-  );
-}
-
 export async function createManagerUser() {
   const email = process.env.MANAGER_EMAIL;
   const password = process.env.MANAGER_PASSWORD;
