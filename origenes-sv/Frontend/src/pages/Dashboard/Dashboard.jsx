@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Alert, Spinner } from "reactstrap";
-import { api, formatMoney } from "../api.js";
-import { useWorkspace } from "../App.jsx";
-import "./Dashboard.css";
+import { api, formatMoney } from "../../api/api.js";
+import { useWorkspace } from "../../context/WorkspaceContext.js";
+import "./Dasboard.css";
 
 const metrics = [
   { key: "todayRevenue", label: "Ventas de hoy", format: formatMoney },

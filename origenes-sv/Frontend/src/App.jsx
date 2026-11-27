@@ -28,7 +28,6 @@ import Payroll from "./pages/Payroll/Payroll.jsx";
 import Security from "./pages/Security/Security.jsx";
 import ProductRecipe from "./pages/ProductRecipe/ProductRecipe.jsx";
  
- 
 const navigation = [
   { to: "/", label: "Resumen", icon: "01" },
   { to: "/pos", label: "Punto de venta", icon: "02" },
@@ -187,7 +186,7 @@ function Workspace() {
         setUser(null);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [branchId]);
  
   async function acceptLogin(currentUser) {
     setUser(currentUser);
@@ -236,4 +235,3 @@ function Workspace() {
 export default function App() {
   return <BrowserRouter><Workspace /></BrowserRouter>;
 }
- 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Form, FormGroup, Input, Label, Spinner } from "reactstrap";
-import { api, formatMoney, formatDate } from "../api.js";
-import { useWorkspace } from "../App.jsx";
+import { api, formatMoney, formatDate } from "../../api/api.js";
+import { useWorkspace } from "../../context/WorkspaceContext.js";
 import "./Cash.css";
 
 const paymentFields = [
