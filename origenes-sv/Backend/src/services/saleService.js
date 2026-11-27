@@ -145,4 +145,3 @@ export function createSale(data, userId) {
     return { id: saleId, invoice, ...totals };
   });
 }
-

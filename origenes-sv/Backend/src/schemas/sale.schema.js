@@ -10,4 +10,3 @@ export const saleSchema = z.object({
     quantity: z.coerce.number().int().positive()
   })).min(1)
 });
-

@@ -13,4 +13,3 @@ export const closeCashSchema = z.object({
   countedBitcoin: moneySchema,
   countedChivo: moneySchema
 });
-

@@ -5,4 +5,3 @@ const router = Router();
 router.post("/", createSale);
 
 export default router;
-

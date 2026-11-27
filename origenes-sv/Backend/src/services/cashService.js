@@ -64,4 +64,3 @@ export function closeCash(data, userId) {
     return { expectedCash: reconciliation.expected.CASH, ...reconciliation };
   });
 }
-
