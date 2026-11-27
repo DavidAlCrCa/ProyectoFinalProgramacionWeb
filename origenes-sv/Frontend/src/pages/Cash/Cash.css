@@ -1,0 +1,250 @@
+.cash-page {
+  min-height: 100%;
+  background-color: #FAF5EC;
+  color: #1D3B3A;
+  padding: 1.6rem 2.25rem 2.5rem;
+  font-family: "Georgia", "Times New Roman", serif;
+}
+
+.cash-title {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 500;
+  color: #1D3B3A;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+.cash-divider {
+  height: 1px;
+  background-color: #1D3B3A;
+  opacity: 0.35;
+  margin-top: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.cash-loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+/* Píldora superior de estado */
+.cash-status-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.cash-pill-outer {
+  display: inline-flex;
+  align-items: center;
+  background-color: #1D3B3A;
+  border-radius: 14px;
+  padding: 0.45rem 0.65rem;
+}
+
+.cash-pill-inner {
+  background-color: #287271;
+  color: #FAF5EC;
+  border-radius: 10px;
+  padding: 0.45rem 1.2rem;
+  font-size: 0.85rem;
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+}
+
+.cash-pill-outer.is-closed .cash-pill-inner {
+  background-color: #1D3B3A;
+  outline: 1px solid #D4A373;
+  color: #FAF5EC;
+}
+
+/* Grid principal */
+.cash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.cash-card-sand {
+  background-color: #EADFC8;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem 1.6rem;
+}
+
+.cash-card-terracotta {
+  background-color: #D4A373;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem 1.6rem;
+}
+
+.cash-card-heading {
+  font-size: 0.95rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #1D3B3A;
+}
+
+.cash-card-divider {
+  height: 1px;
+  background-color: #1D3B3A;
+  opacity: 0.55;
+  margin: 0.35rem 0 1.2rem;
+}
+
+/* Turno abierto: metas y montos */
+.cash-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(29, 59, 58, 0.15);
+}
+
+.cash-payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.cash-payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.cash-value-box {
+  background-color: #FAF5EC;
+  color: #1D3B3A;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  min-width: 115px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.cash-note-box {
+  margin-top: 1.1rem;
+  background-color: #FAF5EC;
+  border-radius: 10px;
+  padding: 0.75rem 0.95rem;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+/* Formularios e inputs */
+.cash-label {
+  font-size: 0.86rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #1D3B3A;
+  margin-bottom: 0.3rem;
+}
+
+.cash-input.form-control {
+  background-color: #FAF5EC !important;
+  border: 1px solid rgba(29, 59, 58, 0.35) !important;
+  border-radius: 10px !important;
+  color: #1D3B3A !important;
+  padding: 0.55rem 0.8rem;
+}
+
+.cash-input.form-control:focus {
+  border-color: #287271 !important;
+  box-shadow: 0 0 0 2px rgba(40, 114, 113, 0.25) !important;
+}
+
+.cash-close-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1rem;
+}
+
+.cash-close-field {
+  margin-bottom: 0;
+}
+
+.cash-expected {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #1D3B3A;
+  opacity: 0.85;
+}
+
+.cash-info-box {
+  background-color: #EADFC8;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  color: #1D3B3A;
+}
+
+.cash-info-lead {
+  margin: 0 0 0.25rem;
+  font-size: 0.88rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.cash-info-copy {
+  margin: 0;
+  font-size: 0.84rem;
+  font-variant: small-caps;
+  line-height: 1.45;
+}
+
+/* Botones */
+.cash-btn-primary,
+.cash-btn-dark {
+  width: 100%;
+  margin-top: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 0.9rem;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: #FAF5EC;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.cash-btn-primary {
+  background-color: #287271;
+}
+
+.cash-btn-dark {
+  background-color: #1D3B3A;
+}
+
+.cash-btn-primary:hover:not(:disabled),
+.cash-btn-dark:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.cash-btn-primary:disabled,
+.cash-btn-dark:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 992px) {
+  .cash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .cash-page {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .cash-close-grid {
+    grid-template-columns: 1fr;
+  }
+}

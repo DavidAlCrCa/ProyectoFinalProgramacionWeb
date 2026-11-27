@@ -1,0 +1,300 @@
+
+.rec-page {
+  /* Ancho de las cabeceras Ingredientes y Cantidad */
+  --rec-banner-w: 188px;
+  padding: 1.5rem 2rem 2.5rem;
+  color: #1D3B3A;
+}
+
+.rec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 0.55rem;
+  margin-bottom: 1.35rem;
+  border-bottom: 1px solid #D4A373;
+}
+
+.rec-title {
+  margin: 0;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 1.65rem;
+  font-weight: 500;
+  color: #1D3B3A;
+}
+
+.rec-product-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.rec-product-selector label {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.rec-product-selector .form-select {
+  min-width: 220px;
+  border-radius: 6px;
+  border: 1px solid #287271;
+  background-color: #FAF5EC;
+  color: #1D3B3A;
+}
+
+/* Contenedor de las dos tarjetas */
+.rec-panels {
+  display: flex;
+  gap: 1.6rem;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.rec-panel {
+  width: 295px;
+  min-height: 410px;
+  background-color: #EADFC8;
+  border-radius: 6px;
+  padding: 0.75rem 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Banners superiores */
+.rec-panel-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 84px;
+  margin-bottom: 1rem;
+}
+
+.rec-panel-banner img {
+  width: var(--rec-banner-w);
+  max-width: 100%;
+  height: auto;
+}
+
+/* Lista vertical de píldoras */
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.rec-pill {
+  height: 38px;
+  border-radius: 19px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem 0 0.45rem;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Píldora izquierda */
+.rec-pill-ingredient {
+  background-color: #287271;
+}
+
+/* Píldora derecha */
+.rec-pill-quantity {
+  background-color: #1D3B3A;
+  padding-left: 0.85rem;
+  gap: 0.35rem;
+}
+
+/* Botón circular X */
+.rec-remove-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-right: 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.rec-remove-btn:hover {
+  transform: scale(1.1);
+}
+
+.rec-remove-btn img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+/* Estilos de reactstrap Input dentro de las píldoras */
+.rec-pill .form-select,
+.rec-pill .form-control {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #FAF5EC !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0;
+  height: 100%;
+}
+
+.rec-pill .form-select {
+  background-image: none !important;
+  padding-right: 1.25rem;
+  cursor: pointer;
+}
+
+.rec-pill .form-select option {
+  color: #1D3B3A;
+  background-color: #FAF5EC;
+}
+
+.rec-qty-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.rec-qty-input::placeholder {
+  color: rgba(250, 245, 236, 0.8) !important;
+}
+
+/* Quita flechas numéricas */
+.rec-qty-input::-webkit-outer-spin-button,
+.rec-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rec-unit-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 72px;
+  border-left: 1px solid rgba(250, 245, 236, 0.45);
+  padding-left: 0.45rem;
+}
+
+/* Triángulos desplegables */
+.rec-caret {
+  position: absolute;
+  right: 0.7rem;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.rec-unit-wrap .rec-caret {
+  right: 0.1rem;
+}
+
+.rec-caret-purple {
+  color: #D4A373;
+}
+
+.rec-caret-blue {
+  color: #FAF5EC;
+}
+
+/* Pie con botón Añadir Ingrediente */
+.rec-footer {
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+}
+
+.rec-add-slot {
+  width: 295px;
+  display: flex;
+  justify-content: center;
+}
+
+.rec-add-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.rec-add-btn:hover {
+  transform: scale(1.04);
+}
+
+.rec-add-btn:active {
+  transform: scale(0.97);
+}
+
+/* Los dos botones de imagen miden lo mismo */
+.rec-add-btn img,
+.rec-save-btn img {
+  display: block;
+  width: 145px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Guardar receta */
+.rec-save-slot {
+  width: 295px;
+  display: flex;
+  justify-content: center;
+}
+
+.rec-save-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.rec-save-btn:hover:not(:disabled) {
+  transform: scale(1.04);
+  filter: brightness(1.08);
+}
+
+.rec-save-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.rec-save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Formulario de nuevo producto */
+.rec-new-product {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.3rem;
+  padding: 1rem 1.2rem;
+  background-color: #EADFC8;
+  border-radius: 8px;
+}
+
+.rec-new-field {
+  flex: 1 1 200px;
+}
+
+.rec-new-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1D3B3A;
+}
+
+.rec-new-field .form-control {
+  border: 1px solid #287271;
+  border-radius: 6px;
+  background-color: #FAF5EC;
+  color: #1D3B3A;
+}

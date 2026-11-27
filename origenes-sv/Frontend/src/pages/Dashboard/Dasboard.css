@@ -1,0 +1,178 @@
+.dash-page {
+  min-height: 100%;
+  background-color: #FAF5EC;
+  color: #1D3B3A;
+  padding: 1.6rem 2.25rem 2.5rem;
+  font-family: "Georgia", "Times New Roman", serif;
+}
+
+/* Encabezado */
+.dash-title {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 500;
+  color: #1D3B3A;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+.dash-divider {
+  height: 1px;
+  background-color: #1D3B3A;
+  opacity: 0.35;
+  margin-top: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.dash-loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+/* Píldora superior de estado de caja */
+.dash-status-pill-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.dash-pill-outer {
+  display: inline-flex;
+  align-items: center;
+  background-color: #1D3B3A;
+  border-radius: 14px;
+  padding: 0.45rem 0.65rem;
+}
+
+.dash-pill-inner {
+  background-color: #287271;
+  color: #FAF5EC;
+  border-radius: 10px;
+  padding: 0.45rem 1.2rem;
+  font-size: 0.85rem;
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.dash-pill-outer.is-closed .dash-pill-inner {
+  background-color: #1D3B3A;
+  outline: 1px solid #D4A373;
+  color: #FAF5EC;
+}
+
+/* 4 Tarjetas de métricas */
+.dash-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.dash-metric-card {
+  background-color: #EADFC8;
+  border-radius: 12px;
+  padding: 1rem 1.1rem 1.85rem;
+  min-height: 185px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-metric-heading {
+  font-size: 0.92rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #1D3B3A;
+}
+
+.dash-metric-divider {
+  height: 1px;
+  background-color: #1D3B3A;
+  opacity: 0.55;
+  margin: 0.35rem 0 1.45rem;
+}
+
+.dash-metric-box {
+  background-color: #FAF5EC;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  width: 72%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  font-size: 1.05rem;
+  color: #1D3B3A;
+}
+
+/* Bloque inferior: Inicio de turno */
+.dash-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 440px) 1fr;
+  gap: 2rem;
+}
+
+.dash-shift-card {
+  background-color: #D4A373;
+  border-radius: 12px;
+  padding: 1.05rem 1.25rem 1.65rem;
+}
+
+.dash-shift-heading {
+  font-size: 0.95rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #1D3B3A;
+}
+
+.dash-shift-divider {
+  height: 1px;
+  background-color: #1D3B3A;
+  opacity: 0.55;
+  margin: 0.35rem 0 1.25rem;
+}
+
+.dash-shift-box {
+  background-color: #EADFC8;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  color: #1D3B3A;
+}
+
+.dash-shift-lead {
+  margin: 0 0 0.2rem;
+  font-size: 0.88rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.dash-shift-copy {
+  margin: 0;
+  font-size: 0.86rem;
+  font-variant: small-caps;
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .dash-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .dash-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dash-page {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .dash-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-metric-box {
+    width: 100%;
+  }
+}
