@@ -834,7 +834,7 @@
 /* ================= VISTA FACTURAS ================= */
 
 .invoices-panel {
-  --invoice-header-center: 7.5%;
+  --invoice-header-center: 8.5%;
   --invoice-body-top: 19%;
   --invoice-body-side: 9%;
   --invoice-body-bottom: 11%;
