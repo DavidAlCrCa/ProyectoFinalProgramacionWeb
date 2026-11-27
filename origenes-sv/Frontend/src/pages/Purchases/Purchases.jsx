@@ -701,7 +701,6 @@ export default function Purchases() {
                     onClick={cancelPurchaseForm}
                   >
                     <img src={`${IMG}/EliminarProducto.png`} alt="" />
-                    <span className="img-action-label">Cancelar compra</span>
                   </button>
  
                   <button
@@ -710,9 +709,6 @@ export default function Purchases() {
                     disabled={busy || !canEdit || !suppliers.length || !selectedItems.length}
                   >
                     <img src={`${IMG}/AñadirProducto.png`} alt="" />
-                    <span className="img-action-label">
-                      {busy ? "Guardando…" : "Confirmar compra"}
-                    </span>
                   </button>
                 </div>
  
